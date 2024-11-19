@@ -4,7 +4,7 @@
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "lodash": "^4.17.21",
-    "mongodb": "^6.10.0",
+    "mongodb": "^4.12.1",
     "mongoose": "^8.2.2",
     "morgan": "^1.10.0",
     "nodejs": "^0.0.0",
@@ -25,5 +25,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "to work on the back-end portion of the coursework"
+  "description": ""
 }
