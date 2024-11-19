@@ -9,66 +9,53 @@ const uri = "mongodb+srv://WebstoreAdmin:admin@webstorecluster.si7uv.mongodb.net
 const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1
 });
+
+//connect to the database
+let db = client.db("Webstore");
 // ----------------------- MONGODB Connection ----------------------- 
 
 
-//http module is required to create a server
-var http = require("http");
+// ----------------------- Express Server -----------------------
 var express = require("express");
-var path = require("path");
-var fs = require("fs");
 var cors = require("cors");
 
 var app = express();
 app.set("json spaces", 2);  //pretty print json
 app.use(cors());  //enable CORS to connect to localhost
 
-//where the html is located
-//app.use(express.static('public'));
-
-//logging middleware
+//logging middleware (can use morgan too!)
 app.use(function (request, response, next) {
   console.log("New request: ", request.url);
   next();
 });
 
-
 //don't forget POST PUT DELETE requests !!!!!!
-//to test in terminal type: curl -X POST http://localhost:3000
+//to test in terminal type: curl -X POST http://localhost:3000 etc.
+
+
+//manage data to and from as JSON format
+app.use(express.json());
+
+app.param("collectionName", function(req, res, next, collectionName) {
+  req.collection = db.collection(collectionName);
+  return next();
+});
+
 
 app.get("/", function (req, res) {
-  res.send("if this shows it works, GET");
+  res.send("select a collection (/collections/lessons or collections/orders)");
 });
 
-app.get("/lessons", function (req, res) {
-  //res.send("if this shows it works, GET /lessons");
-
-  let products = [{
-    id: 1001,
-    name: "Math",
-    place: "London",
-    image: "images/placeholder.jpg",
-    slots: 5,
-    price: 10,
-  }, {
-    id: 1002,
-    name: "English Literature",
-    place: "York",
-    image: "images/placeholder.jpg",
-    slots: 3,
-    price: 7,
-  }, {
-    id: 1003,
-    name: "Geography",
-    place: "London",
-    image: "images/placeholder.jpg",
-    slots: 7,
-    price: 8,
-  }];
-
-  res.json(products);
+//"/collections/lessons" endpoint
+app.get("/collections/:collectionName", function (req, res, next) {
+  req.collection.find({}).toArray(function (err, results) {
+    if (err) {
+      return next(err);
+    }
+    res.send(results);
+  });
+ 
 });
-
 
 
 app.use(function (req, res) {
@@ -77,6 +64,6 @@ app.use(function (req, res) {
 
 
 //listen at port 3000
-http.createServer(app).listen(3000, "0.0.0.0", function () {
+app.listen(3000, "0.0.0.0", function () {
   console.log("Server is running at port 3000");
 });
