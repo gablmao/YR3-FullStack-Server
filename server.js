@@ -20,8 +20,8 @@ var express = require("express");
 var cors = require("cors");
 
 var app = express();
-app.set("json spaces", 2);  //pretty print json
-app.use(cors());  //enable CORS to connect to localhost
+app.set("json spaces", 2); //pretty print json
+app.use(cors()); //enable CORS to connect to localhost
 
 //logging middleware (can use morgan too!)
 app.use(function (request, response, next) {
@@ -36,7 +36,7 @@ app.use(function (request, response, next) {
 //manage data to and from as JSON format
 app.use(express.json());
 
-app.param("collectionName", function(req, res, next, collectionName) {
+app.param("collectionName", function (req, res, next, collectionName) {
   req.collection = db.collection(collectionName);
   return next();
 });
@@ -54,9 +54,33 @@ app.get("/collections/:collectionName", function (req, res, next) {
     }
     res.send(results);
   });
- 
+
 });
 
+
+//updates order collection after a submitted order
+app.post("/collections/:collectionName", function (req, res, next) {
+  req.collection.insertOne(req.body, function (err, results) {
+    if (err) {
+      return next(err);
+    }
+    res.insertOne(results);
+  });
+
+});
+
+
+//updates lesson(s) spaces after a submitted order
+app.put("/collections/:collectionName/:id", function (req, res, next) {
+  req.collection.updateOne({_id: new ObjectId(req.params.id)},
+    {$set: {space: req.params.space}},
+    function (err, results) {
+      if (err) {
+        return next(err);
+      }
+      res.send((results.matchedCount === 1) ? {msg: "success"} : {msg: "error"});
+    });
+});
 
 app.use(function (req, res) {
   res.status(404).send("Page not found");
