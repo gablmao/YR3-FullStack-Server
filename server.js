@@ -18,8 +18,8 @@ let db = client.db("Webstore");
 // ----------------------- Express Server -----------------------
 var express = require("express");
 var cors = require("cors");
-
 var app = express();
+
 app.set("json spaces", 2); //pretty print json
 app.use(cors()); //enable CORS to connect to localhost
 
@@ -58,7 +58,7 @@ app.get("/collections/:collectionName", function (req, res, next) {
 });
 
 
-//updates order collection after a submitted order
+//"/collections/orders" - updates order collection after a submitted order
 app.post("/collections/:collectionName", function (req, res, next) {
   req.collection.insertOne(req.body, function (err, results) {
     if (err) {
@@ -70,16 +70,26 @@ app.post("/collections/:collectionName", function (req, res, next) {
 });
 
 
-//updates lesson(s) spaces after a submitted order
+//"collections/orders/:lesson.id" - updates lesson(s) spaces after a submitted order
 app.put("/collections/:collectionName/:id", function (req, res, next) {
-  req.collection.updateOne({_id: new ObjectId(req.params.id)},
-    {$set: {space: req.params.space}},
-    function (err, results) {
-      if (err) {
-        return next(err);
-      }
-      res.send((results.matchedCount === 1) ? {msg: "success"} : {msg: "error"});
-    });
+  req.collection.updateOne({
+    id: new ObjectId(req.params.id)  //uses id, not _id. this is for the vuejs to work (easier for me to implement/understand)
+  }, {
+    $set: req.body
+  }, {
+    safe: true,
+    multi: false
+  }, function (err, result) {
+    if (err) {
+      return next(err);
+    } else {
+      res.send((result.matchedCount === 1) ? {
+        msg: "success"
+      } : {
+        msg: "error"
+      });
+    }
+  })
 });
 
 app.use(function (req, res) {
@@ -88,7 +98,6 @@ app.use(function (req, res) {
 
 
 //listen at port 3000
-const port = process.env.PORT || 3000;
-app.listen(port, "0.0.0.0", function () {
-  console.log("Server is running at: " + port);
+app.listen(3000, "0.0.0.0", function () {
+  console.log("Server is running at port 3000");
 });
